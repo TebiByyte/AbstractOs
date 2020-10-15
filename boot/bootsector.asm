@@ -34,7 +34,7 @@ _LoadExtendedBoot:
 
 _LoadChainLoader:
     mov dl, [BOOTDRIVE]
-    mov al, 16
+    mov al, 32
     mov ch, 0x0
     mov dh, 0x0
     mov cl, 0x03

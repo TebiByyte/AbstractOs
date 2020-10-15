@@ -19,7 +19,7 @@ kernelEntry.o: boot/kernelEntry.asm
 	nasm boot/kernelEntry.asm -f elf64 -o kernelEntry.o
 
 kernel.bin: kernelEntry.o $(COBJS)
-	ld -o kernel.bin -T Linker -Ttext 0x7D00 $^ --oformat binary
+	ld -o kernel.bin -T Linker -Ttext 0x7F00 $^ --oformat binary
 
 run: 
 	qemu-system-x86_64 $(OSOUT)
