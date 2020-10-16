@@ -16,6 +16,7 @@ mov sp, ax
 mov ax, hellomsg
 call _printString
 call _LoadExtendedBoot
+call _Enable_SSE
 call _LoadChainLoader
 call _EnterLongMode
 jmp $ ;Safety hang
@@ -34,7 +35,7 @@ _LoadExtendedBoot:
 
 _LoadChainLoader:
     mov dl, [BOOTDRIVE]
-    mov al, 32
+    mov al, 63
     mov ch, 0x0
     mov dh, 0x0
     mov cl, 0x03
@@ -69,6 +70,16 @@ times 16 db 0
 dw 0xaa55; boot signature
 
 bits 16
+
+_Enable_SSE:
+    mov eax, cr0
+    and ax, 0xFFFB
+    or ax, 0x2
+    mov cr0, eax
+    mov eax, cr4
+    or ax, 3 << 9
+    mov cr4, eax
+    ret
 
 _EnterLongMode:
     ;Set up the paging (This won't be used for now)
