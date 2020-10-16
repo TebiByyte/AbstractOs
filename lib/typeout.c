@@ -1,5 +1,7 @@
 #include "typeout.h"
 #include "common/port.h"
+#include "string.h"
+#include <stdarg.h>
 
 void screen_clear(){
     cursor.x = 0;
@@ -38,6 +40,34 @@ void screen_print_char(char c){
     }
 
     screen_update_cursor();
+}
+
+void screen_print_int(long n, uint32 base){
+    char intBuffer[32];
+    string intStr = string_create(intBuffer);
+    string_itos(n, base, &intStr);
+    screen_print_str(intStr.data);
+}
+// Format:
+// i  -> integer
+// s  -> string
+// \n -> newline 
+void screen_printf(char *format, ...){
+    va_list args;
+    va_start(args, format);
+    while (*format != '\0'){
+        if (*format == 'i'){
+            long i = va_arg(args, long);
+            screen_print_int(i, 10);
+        } else if (*format == 's'){
+            char *str = va_arg(args, char*);
+            screen_print_str(str);
+        } else if (*format == '\n'){
+            screen_print_char('\n');
+        }
+        format++;
+    }
+    va_end(args);
 }
 
 void screen_update_cursor(){

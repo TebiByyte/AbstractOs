@@ -1,9 +1,10 @@
 #include "../lib/typeout.h"
+#include "../lib/string.h"
 
 void main(){
-    char testStr[15] = "Hello, World!\n\0";
     screen_clear();
-    screen_print_str(testStr);
+
+    screen_printf("si\ns", "Hello!", 0xFF, "Goodbye!");
 
     while(1){}
     return;
