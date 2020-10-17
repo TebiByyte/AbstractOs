@@ -15,13 +15,13 @@ $(BOOTSECTO): boot/bootsector.asm
 %.o:%.c $(CINC)
 	gcc -m64 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -c $< -o $@
 
-irq.o: drivers/irq.asm
-	nasm drivers/irq.asm -f elf64 -o irq.o
+pic.o: drivers/pic.asm
+	nasm drivers/pic.asm -f elf64 -o pic.o
 
 kernelEntry.o: boot/kernelEntry.asm
 	nasm boot/kernelEntry.asm -f elf64 -o kernelEntry.o
 
-kernel.bin: kernelEntry.o irq.o $(COBJS)
+kernel.bin: kernelEntry.o pic.o $(COBJS)
 	ld -o kernel.bin -T Linker -Ttext 0x7F00 $^ --oformat binary
 
 run: 
