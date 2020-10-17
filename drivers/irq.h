@@ -21,7 +21,11 @@ struct idtptr idtP;
 
 static struct IDT_entry IDT[256];
 
+static void (*handlers[256]) (void);
+
 void set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr);
+
+void master_IRQ();
 
 void idt_init();
 void irq0_handler();

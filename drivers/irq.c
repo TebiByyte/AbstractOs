@@ -1,6 +1,7 @@
 #include "irq.h"
 #include "../lib/common/port.h"
 #include "../lib/typeout.h"
+#include <stddef.h>
 
 void set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr){
     IDT[entry].offset_low = address & 0xffff;
@@ -12,24 +13,22 @@ void set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr){
     IDT[entry].reserved = 0;
 }
 
+void master_IRQ(){
+    //Read ISR to tell which interrupt was fired
+    p_write8(0x20, 0x0b);
+    p_write8(0xA0, 0x0b);
+    uint16 isrValue = (p_read8(0xA0) << 8) | p_read8(0x20);
+    if (handlers[isrValue - 1] != NULL){
+        handlers[isrValue - 1]();//Call the correct handler for this 
+    } else {
+        //Since there's no handler, we'll need to end the interrupt ourselves
+        p_write8(0x20, 0x20);
+    }
+}
+
 void idt_init(){
     extern int load_idt();
-    extern int irq0();
-    extern int irq1();
-    extern int irq2();
-    extern int irq3();
-    extern int irq4();
-    extern int irq5();
-    extern int irq6();
-    extern int irq7();
-    extern int irq8();
-    extern int irq9();
-    extern int irq10();
-    extern int irq11();
-    extern int irq12();
-    extern int irq13();
-    extern int irq14();
-    extern int irq15();
+    extern int irq_asm();
 
     p_write8(0x20, 0x11);
     p_write8(0xA0, 0x11);
@@ -42,22 +41,26 @@ void idt_init(){
     p_write8(0x21, 0x0);
     p_write8(0xA1, 0x0);
 
-    set_entry(32, (uint64)irq0, 0x08, 0x8E);
-    set_entry(33, (uint64)irq1, 0x08, 0x8E);
-    set_entry(34, (uint64)irq2, 0x08, 0x8E);
-    set_entry(35, (uint64)irq3, 0x08, 0x8E);
-    set_entry(36, (uint64)irq4, 0x08, 0x8E);
-    set_entry(37, (uint64)irq5, 0x08, 0x8E);
-    set_entry(38, (uint64)irq6, 0x08, 0x8E);
-    set_entry(39, (uint64)irq7, 0x08, 0x8E);
-    set_entry(40, (uint64)irq8, 0x08, 0x8E);
-    set_entry(41, (uint64)irq9, 0x08, 0x8E);
-    set_entry(42, (uint64)irq10, 0x08, 0x8E);
-    set_entry(43, (uint64)irq11, 0x08, 0x8E);
-    set_entry(44, (uint64)irq12, 0x08, 0x8E);
-    set_entry(45, (uint64)irq13, 0x08, 0x8E);
-    set_entry(46, (uint64)irq14, 0x08, 0x8E);
-    set_entry(47, (uint64)irq15, 0x08, 0x8E);
+    for (int i = 32; i < 48; i++){
+        set_entry(i, (uint64)irq_asm, 0x08, 0x8E);
+    }
+
+    handlers[0] = irq0_handler;
+    handlers[1] = irq1_handler;
+    handlers[2] = irq2_handler;
+    handlers[3] = irq3_handler;
+    handlers[4] = irq4_handler;
+    handlers[5] = irq5_handler;
+    handlers[6] = irq6_handler;
+    handlers[7] = irq7_handler;
+    handlers[8] = irq8_handler;
+    handlers[9] = irq9_handler;
+    handlers[10] = irq10_handler;
+    handlers[11] = irq11_handler;
+    handlers[12] = irq12_handler;
+    handlers[13] = irq13_handler;
+    handlers[14] = irq14_handler;
+    handlers[15] = irq15_handler;
 
     idtP.limit = sizeof(struct IDT_entry) * 256 - 1;
     idtP.offset = (uint64)&IDT;
@@ -66,6 +69,7 @@ void idt_init(){
 }
 
 void irq0_handler(){
+    screen_print_str("\nHandled the interrupt correctly!\0");
     p_write8(0x20, 0x20);
 }
 
