@@ -2,23 +2,31 @@
 #include "../lib/string.h"
 #include "../drivers/pic.h"
 #include "../drivers/pci.h"
+#include "../drivers/pit.h"
 #include "../drivers/usb.h"
+#include "../lib/common/port.h"
 #include <stddef.h>
 
 void main(){
+
     picd_init();
     screen_clear();
-    pcid_enumerate();
+    //pcid_enumerate();
+    pitd_init(1000);
 
-    for (int i = 0; i < pci_device_count; i++){
+    
+
+    /*for (int i = 0; i < pci_device_count; i++){
         struct pci_device device = pci_devices[i];
         struct pci_header_common header = device.header.header_common;
         screen_printf("sisi\n\0", "vendor: \0", header.vendor_id, " class code: \0", header.class_code);
-    }
+    }*/
 
-    pci_header header;
-    //header.header_raw.registers[0].dword = 0xFFFF0123;
-    pcid_fill_header(pci_devices[1].bus, pci_devices[1].slot, pci_devices[1].func, &header);
+
+    pitd_wait(5000);
+
+    screen_print_str("\nTimed message!\0");
+
 
     while(1){}
     return;

@@ -36,6 +36,9 @@ void screen_print_char(char c){
     }
 
     if (cursor.y >= MAXV){
+        cursor.x = 0;
+        cursor.y = 0;
+        screen_clear();
         screen_update_cursor();
     }
 
