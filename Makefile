@@ -5,24 +5,24 @@ SRCS = $(shell find . -name '*.c')
 CINC = $(shell find . -name '*.h')
 COBJS = $(patsubst %.c, %.o, $(SRCS))
 
-$(OSOUT): kernel.bin $(BOOTSECTO)
-	cat $(BOOTSECTO) kernel.bin > $(OSOUT)
+$(OSOUT): chainloader.bin $(BOOTSECTO)
+	cat $(BOOTSECTO) chainloader.bin > $(OSOUT)
 	truncate -s 14M $(OSOUT) 
 
 $(BOOTSECTO): boot/bootsector.asm
 	nasm -f bin boot/bootsector.asm -o $(BOOTSECTO)
 
 %.o:%.c $(CINC)
-	gcc -m64 -ffreestanding -fno-pie -fno-stack-protector -nostdlib -c $< -o $@
+	gcc -m64 -I os -ffreestanding -fno-pie -fno-stack-protector -nostdlib -mno-red-zone -c $< -o $@
 
-pic.o: drivers/pic.asm
-	nasm drivers/pic.asm -f elf64 -o pic.o
+pic.o: os/drivers/pic.asm
+	nasm os/drivers/pic.asm -f elf64 -o pic.o
 
-kernelEntry.o: boot/kernelEntry.asm
-	nasm boot/kernelEntry.asm -f elf64 -o kernelEntry.o
+chainloaderEntry.o: boot/chainloaderEntry.asm
+	nasm boot/chainloaderEntry.asm -f elf64 -o chainloaderEntry.o
 
-kernel.bin: kernelEntry.o pic.o $(COBJS)
-	ld -o kernel.bin -T Linker -Ttext 0x7F00 $^ --oformat binary
+chainloader.bin: chainloaderEntry.o pic.o $(COBJS)
+	ld -o chainloader.bin -T Linker -Ttext 0x7F00 $^ --oformat binary
 
 run: 
 	qemu-system-x86_64 $(OSOUT)

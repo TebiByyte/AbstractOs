@@ -41,7 +41,7 @@ _LoadChainLoader:
     mov cl, 0x03
     xor bx, bx
     mov es, bx
-    mov bx, KERNEL_OFFSET
+    mov bx, CHAINLOADER_OFFSET
     call diskload
     ret
 
@@ -54,7 +54,7 @@ BOOTDRIVE: db 0x80
 hellomsg: db "Loaded boot sector, loading additional code", 0xD, 0xA, 0
 testS: db "Read succesfully!", 0
 testF: db "Read failed!", 0
-KERNEL_OFFSET equ 0x7F00
+CHAINLOADER_OFFSET equ 0x7F00
 times 0x1BE - ($ - $$) db 0; Pad out to 446 bytes so we can include a partition table
 ;Begin the partition table
 ;Parition entry 1
@@ -143,7 +143,7 @@ Realm64:
     rep stosq  
     mov ebp, 0x90000
     mov esp, ebp
-    mov rax, KERNEL_OFFSET
+    mov rax, CHAINLOADER_OFFSET
     jmp rax
     jmp $
 
