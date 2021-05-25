@@ -16,6 +16,7 @@ mov sp, ax
 mov ax, hellomsg
 call _printString
 call _LoadExtendedBoot
+call _getMemoryMap
 call _Enable_SSE
 call _LoadChainLoader
 call _EnterLongMode
@@ -49,11 +50,9 @@ _LoadChainLoader:
 %include 'boot/print.asm' 
 %include 'boot/gdt.asm'
 %include 'boot/diskload.asm'
-
 BOOTDRIVE: db 0x80
 hellomsg: db "Loaded boot sector, loading additional code", 0xD, 0xA, 0
-testS: db "Read succesfully!", 0
-testF: db "Read failed!", 0
+debugmsg: db "Loaded additional code and mapped memory", 0xD, 0xA, 0
 CHAINLOADER_OFFSET equ 0x7F00
 times 0x1BE - ($ - $$) db 0; Pad out to 446 bytes so we can include a partition table
 ;Begin the partition table
@@ -127,6 +126,7 @@ _EnterLongMode:
     lgdt [GDT64.Pointer]
     jmp GDT64.Code:Realm64
 
+
 bits 64
 
 Realm64:
@@ -146,5 +146,12 @@ Realm64:
     mov rax, CHAINLOADER_OFFSET
     jmp rax
     jmp $
+
+
+bits 16
+;This is currently really weird that I have to include this file here, but defining any bytes above this causes strange issues. 
+;I think it's because it can't jump into the chain loader properly if the code gets offset by a certain amount? 
+;TODO: investigate this 
+%include 'boot/mem.asm'
 
 times 0x400 - ($ - $$) db 0 ;Pad this out to fill up the sector on disk

@@ -25,7 +25,7 @@ chainloader.bin: chainloaderEntry.o pic.o $(COBJS)
 	ld -o chainloader.bin -T Linker -Ttext 0x7F00 $^ --oformat binary
 
 run: 
-	qemu-system-x86_64 $(OSOUT)
+	qemu-system-x86_64 -m 256M $(OSOUT)
 
 clean: 
 	rm -f $(BOOTSECTO) $(OSOUT) *.bin *.o $(COBJS) $(BUILDDIR)/hexdump.txt
