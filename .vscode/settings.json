@@ -1,6 +1,8 @@
 {
     "files.associations": {
         "pic.h": "c",
-        "port.h": "c"
+        "port.h": "c",
+        "string.h": "c",
+        "memorymapentry.h": "c"
     }
 }

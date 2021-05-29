@@ -15,13 +15,10 @@ $(BOOTSECTO): boot/bootsector.asm
 %.o:%.c $(CINC)
 	gcc -m64 -I os -ffreestanding -fno-pie -fno-stack-protector -nostdlib -mno-red-zone -c $< -o $@
 
-pic.o: os/drivers/pic.asm
-	nasm os/drivers/pic.asm -f elf64 -o pic.o
-
 chainloaderEntry.o: boot/chainloaderEntry.asm
 	nasm boot/chainloaderEntry.asm -f elf64 -o chainloaderEntry.o
 
-chainloader.bin: chainloaderEntry.o pic.o $(COBJS)
+chainloader.bin: chainloaderEntry.o $(COBJS)
 	ld -o chainloader.bin -T Linker -Ttext 0x7F00 $^ --oformat binary
 
 run: 
