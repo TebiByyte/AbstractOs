@@ -1,6 +1,7 @@
-#include <include/interrupts/interrupt.h>
-#include <include/typeout.h>
-#include <include/common/port.h>
+#include <interrupts/interrupt.h>
+#include <typeout.h>
+#include <common/port.h>
+#include <drivers/pic/pic.h>
 
 void idt_set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr){
     idt[entry].offset_low = address & 0xffff;
@@ -27,7 +28,5 @@ void int_init(){
 
 void idt_common(uint32 vector){
     //Do something
-    screen_printf("si\n", "Interrupt from vector: ", vector);//Just print for now
-    p_write8(0x20, 0x20);
-    p_write8(0xA0, 0x20);//EOI
+    picd_eoi(vector);
 }

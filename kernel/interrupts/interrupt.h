@@ -1,7 +1,8 @@
 #ifndef __INTERRUPTSH__
 #define __INTERRUPTSH__
-#include <include/common/type.h>
-
+#include <common/type.h>
+//Note that this will need to be aware of what hardware is being used for interrupts to send a proper EOI 
+//TODO: Create a proper handler for interrupts that can be registered at run-time, have the idt common method take in the CPU and stack state as arguments.
 struct __attribute__((__packed__)) idt_entry{
     uint16 offset_low;
     uint16 selector;

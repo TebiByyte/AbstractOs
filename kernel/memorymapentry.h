@@ -1,6 +1,6 @@
 #ifndef __MEMORYMAPENTRYH__
 #define __MEMORYMAPENTRYH__
-#include <include/common/type.h>
+#include <common/type.h>
 
 typedef struct __attribute((__packed__)) smap_entry {
     uint32 base_low;

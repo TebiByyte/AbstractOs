@@ -1,3 +1,5 @@
+start:
+global start
 [extern chainloader_entry]
 [extern idt_common]
 
