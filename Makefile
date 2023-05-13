@@ -1,16 +1,18 @@
 BUILDDIR = build
 BOOTSECTO = $(BUILDDIR)/boot/boot.bin
-OSOUT = $(BUILDDIR)/image/os.iso
+OSOUT = $(BUILDDIR)/image/os.hdd
 SRCS = $(shell find . -name '*.c')
 CINC = $(shell find . -name '*.h')
 COBJS = $(patsubst %.c, %.o, $(SRCS))
 
 $(OSOUT): chainloader.bin $(BOOTSECTO)
 	cat $(BOOTSECTO) chainloader.bin > $(OSOUT)
-	truncate -s 14M $(OSOUT) 
+	truncate -s 32K $(OSOUT) 
+#Figure out how to truncate this to the NEAREST block size (512 bytes?)
+#Use the .hdd extension so virtualbox doesn't have a fit 
 
 $(BOOTSECTO): boot/bootsector.asm
-	nasm -f bin boot/bootsector.asm -o $(BOOTSECTO)
+	nasm boot/bootsector.asm -f bin -o $(BOOTSECTO)
 
 %.o:%.c $(CINC)
 	gcc -m64 -I kernel -ffreestanding -fno-pie -fno-stack-protector -nostdlib -mno-red-zone -c $< -o $@

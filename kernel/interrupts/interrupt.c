@@ -3,6 +3,8 @@
 #include <common/port.h>
 #include <drivers/pic/pic.h>
 
+struct idt_ptr idtPtr;
+
 void idt_set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr){
     idt[entry].offset_low = address & 0xffff;
     idt[entry].selector = selector;

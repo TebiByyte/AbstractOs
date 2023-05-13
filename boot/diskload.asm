@@ -10,6 +10,8 @@ diskload:
     pop dx ;Restore ax into the dx register
     cmp dl, al ;if al (sectors read) != dh (sectors expected)
     jne diskError
+    mov ax, DISKSUCCESSMSG
+    call _printString
     ret
 
 diskError:
@@ -27,6 +29,7 @@ diskError:
     call _printHex
     jmp $
 
+DISKSUCCESSMSG db "Disk read success!", 0xD, 0xA, 0
 DISKERRORMSG db "Disk read error! Loaded ", 0
 DISKERRORMSG2 db " Sectors.", 0
 DISKERRORMSG3 db " Error code: ", 0

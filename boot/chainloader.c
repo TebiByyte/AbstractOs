@@ -10,7 +10,7 @@ void chainloader_entry(){
     int memoryEntryCount = *((uint32*)0x700); //Retrieve memory map structure from 0x8000 
     smap_entry_t* entryptr = (smap_entry_t*)0x704;
 
-    screen_print_str("Hello, world!\n");
+    screen_print_str("Loaded chainloader successfully!\n");
 
     picd_init();
     int_init();

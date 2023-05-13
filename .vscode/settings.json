@@ -3,6 +3,7 @@
         "pic.h": "c",
         "port.h": "c",
         "string.h": "c",
-        "memorymapentry.h": "c"
+        "memorymapentry.h": "c",
+        "interrupt.h": "c"
     }
 }

@@ -5,6 +5,7 @@ bits 16
 ;2.) Enter long mode
 ;3.) Enter the kernel
 ;Note that I won't be setting up paging until later on
+;TODO: Restructure this code so it's not taking up so much space (There's no room for the MBR partition table)
 
 ;Zero all the segment registers early 
 xor ax, ax
@@ -23,7 +24,7 @@ call _EnterLongMode
 jmp $ ;Safety hang
 
 _LoadExtendedBoot:
-    mov dl, [BOOTDRIVE]
+    mov [BOOTDRIVE], dl
     mov al, 2 ;Load in 2 sectors, so that we can enter long mode from outside our bootsector
     mov ch, 0x0 ;Select cylinder 0
     mov dh, 0x0 ;Select head 0
@@ -35,8 +36,11 @@ _LoadExtendedBoot:
     ret
 
 _LoadChainLoader:
+    ;This should eventually analyze the drive geometry 
     mov dl, [BOOTDRIVE]
-    mov al, 63
+    mov ax, loadingChainLoaderMsg
+    call _printString
+    mov al, 0x32
     mov ch, 0x0
     mov dh, 0x0
     mov cl, 0x03
@@ -51,21 +55,23 @@ _LoadChainLoader:
 %include 'boot/gdt.asm'
 %include 'boot/diskload.asm'
 BOOTDRIVE: db 0x80
-hellomsg: db "Loaded boot sector, loading additional code", 0xD, 0xA, 0
+hellomsg: db "Loaded successfully, loading addtional code from disk", 0xD, 0xA, 0
+loadingChainLoaderMsg: db "Successfully enabled SSE, loading chain loader and switching to long mode", 0xD, 0xA, 0
 debugmsg: db "Loaded additional code and mapped memory", 0xD, 0xA, 0
 CHAINLOADER_OFFSET equ 0x7F00
-times 0x1BE - ($ - $$) db 0; Pad out to 446 bytes so we can include a partition table
+times 510 - ($ - $$) db 0
+;times 0x1BE - ($ - $$) db 0; Pad out to 446 bytes so we can include a partition table
 ;Begin the partition table
 ;Parition entry 1
-db 0x80; bootable
-times 15 db 0; We don't know where we want the partition to start, or any other data about it yet, so leave this blank for now.
+;db 0x80; bootable
+;times 15 db 0; We don't know where we want the partition to start, or any other data about it yet, so leave this blank for now.
 ;The rest of these entries should just be zeros (invalid entries)
 ;Parition entry 2
-times 16 db 0
+;times 16 db 0
 ;Parition entry 3
-times 16 db 0
+;times 16 db 0
 ;Parition entry 4
-times 16 db 0
+;times 16 db 0
 dw 0xaa55; boot signature
 
 bits 16

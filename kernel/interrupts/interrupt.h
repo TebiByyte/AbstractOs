@@ -19,7 +19,6 @@ struct __attribute__((__packed__)) idt_ptr{
 };
 
 static struct idt_entry idt[256];
-struct idt_ptr idtPtr;
 extern void idt_stub_table();
 extern void load_idt(struct idt_ptr ptr);
 void int_init();
