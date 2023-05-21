@@ -4,6 +4,7 @@
 #include <drivers/pic/pic.h>
 
 struct idt_ptr idtPtr;
+static struct idt_entry idt[256];
 
 void idt_set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr){
     idt[entry].offset_low = address & 0xffff;

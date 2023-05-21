@@ -51,9 +51,9 @@ _LoadChainLoader:
     ret
 
 ;Include essential asm files
-%include 'boot/print.asm' 
-%include 'boot/gdt.asm'
-%include 'boot/diskload.asm'
+%include 'bootstrap/print.asm' 
+%include 'bootstrap/gdt.asm'
+%include 'bootstrap/diskload.asm'
 BOOTDRIVE: db 0x80
 hellomsg: db "Loaded successfully, loading addtional code from disk", 0xD, 0xA, 0
 loadingChainLoaderMsg: db "Successfully enabled SSE, loading chain loader and switching to long mode", 0xD, 0xA, 0
@@ -158,6 +158,6 @@ bits 16
 ;This is currently really weird that I have to include this file here, but defining any bytes above this causes strange issues. 
 ;I think it's because it can't jump into the chain loader properly if the code gets offset by a certain amount? 
 ;TODO: investigate this 
-%include 'boot/mem.asm'
+%include 'bootstrap/mem.asm'
 
 times 0x400 - ($ - $$) db 0 ;Pad this out to fill up the sector on disk

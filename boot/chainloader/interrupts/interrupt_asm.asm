@@ -1,11 +1,4 @@
-start:
-global start
-[extern chainloader_entry]
 [extern idt_common]
-
-call chainloader_entry ;Invoke chainloader_entry
-
-jmp $
 
 %define IRQLEN 256 
 
