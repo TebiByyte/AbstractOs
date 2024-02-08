@@ -18,8 +18,15 @@ struct __attribute__((__packed__)) idt_ptr{
     uint64 offset;
 };
 
-extern void idt_stub_table();
-extern void load_idt(struct idt_ptr ptr);
+typedef struct __attribute__((__packed__)) {
+    uint8 ip;
+    uint8 cs;
+    uint8 flags;
+    uint8 sp;
+    uint8 ss;
+} int_frame;
+
+void idt_set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr);
 void int_init();
-void idt_common(uint32 vector);
+__attribute__((interrupt)) void int_blank(int_frame* frame);
 #endif

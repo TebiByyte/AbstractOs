@@ -31,6 +31,8 @@ void string_itos(long n, uint32 b, string *buffer){
     }
 }
 
+#ifndef COMPILE_NO_FLOAT
+
 static const double rounders[MAX_PRECISION + 1] = {
     0.5,				// 0
 	0.05,				// 1
@@ -93,6 +95,8 @@ void string_ftos(double n, uint32 p, string *buffer){
     *charBuffer = '\0';
     buffer->length = charBuffer - buffer->data;
 }
+
+#endif
 
 void string_reverse(string *str){
     void swap(char *a, char *b){ char t = *a; *a = *b; *b = t; }

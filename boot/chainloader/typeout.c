@@ -55,7 +55,6 @@ void screen_print_int(long n, uint32 base){
 // i  -> integer(base 10)
 // h  -> integer(base 16)
 // s  -> string
-// f  -> floating point
 // \n -> newline 
 void screen_printf(char *format, ...){
     va_list args;
@@ -71,22 +70,12 @@ void screen_printf(char *format, ...){
         } else if (*format == 's'){
             char *str = va_arg(args, char*);
             screen_print_str(str);
-        } else if (*format == 'f'){
-            double d = va_arg(args, double);
-            screen_print_float(d, 10);
         } else if (*format == '\n'){
             screen_print_char('\n');
         }
         format++;
     }
     va_end(args);
-}
-
-void screen_print_float(double n, uint32 precision){
-    char floatBuffer[32];
-    string floatStr = string_create(floatBuffer);
-    string_ftos(n, precision, &floatStr);
-    screen_print_str(floatStr.data);
 }
 
 void screen_update_cursor(){

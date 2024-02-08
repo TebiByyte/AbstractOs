@@ -5,12 +5,17 @@ outFile = $(buildDir)/image/os.hdd
 
 bootsectorOut = $(bootstrapDir)/bootsector.bin
 chainloaderOut = $(chainLoaderDir)/chainloader.bin
+#TODO: Make the output folder for the object files under the build/objs directory
 
 srcs = $(shell find $(chainLoaderDir) -name '*.c')
 cinc = $(shell find $(chainLoaderDir) -name '*.h')
 asm  = $(shell find $(chainLoaderDir) -name '*.asm')
 cobjs = $(patsubst %.c, %.o, $(srcs))
 asmobjs = $(patsubst %.asm, %.o, $(asm)) 
+
+# Tag a list of compile flags and preprocessor macros
+bootPreprocessorFlags = COMPILE_NO_FLOAT
+compileFlags = -ffreestanding -fno-pie -fno-stack-protector -nostdlib -mno-red-zone -mgeneral-regs-only -D $(bootPreprocessorFlags)
 
 # The final step in the build process is concatenating the two binaries
 $(outFile): $(bootsectorOut) $(chainloaderOut)
@@ -29,7 +34,7 @@ $(chainloaderOut): $(asmobjs) $(cobjs)
 
 # Compile all the .c source files along with all the header files
 %.o: %.c $(cinc) 
-	gcc -m64 -I $(chainLoaderDir) -ffreestanding -fno-pie -fno-stack-protector -nostdlib -mno-red-zone -c $< -o $@
+	gcc -m64 -I $(chainLoaderDir) $(compileFlags) -c $< -o $@
 
 # Assemble all the assembly source files
 %.o: %.asm

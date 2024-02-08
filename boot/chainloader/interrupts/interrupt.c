@@ -3,6 +3,8 @@
 #include <common/port.h>
 #include <drivers/pic/pic.h>
 
+//TODO it might be a good idea to combine the pic code here with the interrupt code
+
 struct idt_ptr idtPtr;
 static struct idt_entry idt[256];
 
@@ -16,20 +18,26 @@ void idt_set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr
     idt[entry].reserved = 0;
 }
 
+//I think I could abstract this out a little better
 //Note, it's important to initiate the PIC first before calling this
 void int_init(){
     for (int i = 0; i < 256; i++)
     {
-        idt_set_entry(i, *((uint64*)idt_stub_table + i), 0x08, 0x8E);
+        idt_set_entry(i, (uint64)(&int_blank), 0x08, 0x8E);
     }
 
     idtPtr.limit = sizeof(struct idt_entry) * 256 - 1;
     idtPtr.offset = (uint64)&idt;
 
-    load_idt(idtPtr);
+    lidt(idtPtr);
 }
 
-void idt_common(uint32 vector){
-    //Do something
-    picd_eoi(vector);
+__attribute__((interrupt))
+void int_blank(int_frame* frame){
+    //Do nothing here
+}
+
+void lidt(struct idt_ptr IDTR)
+{
+    asm ( "lidt %0\n sti" : : "m"(IDTR) );  // let the compiler choose an addressing mode
 }
