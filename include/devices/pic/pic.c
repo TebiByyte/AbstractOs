@@ -1,4 +1,4 @@
-#include <drivers/pic/pic.h>
+#include <devices/pic/pic.h>
 #include <common/port.h>
 
 void picd_init(){

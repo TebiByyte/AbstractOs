@@ -1,6 +1,6 @@
-#include "typeout.h"
-#include "common/port.h"
-#include "string.h"
+#include <typeout.h>
+#include <common/port.h>
+#include <lib/string.h>
 #include <stdarg.h>
 
 void screen_clear(){

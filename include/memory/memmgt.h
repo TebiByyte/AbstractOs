@@ -1,5 +1,5 @@
-#ifndef __MEMORYMAPENTRYH__
-#define __MEMORYMAPENTRYH__
+#ifndef __MEMMGTH__
+#define __MEMMGTH__
 #include <common/type.h>
 
 typedef struct __attribute((__packed__)) smap_entry {

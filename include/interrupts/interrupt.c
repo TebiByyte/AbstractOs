@@ -1,7 +1,7 @@
 #include <interrupts/interrupt.h>
 #include <typeout.h>
 #include <common/port.h>
-#include <drivers/pic/pic.h>
+#include <devices/pic/pic.h>
 
 //TODO it might be a good idea to combine the pic code here with the interrupt code
 

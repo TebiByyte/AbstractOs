@@ -1,6 +1,6 @@
 #ifndef __TELETYPEOUT__
 #define __TELETYPEOUT__
-#include "common/type.h"
+#include <common/type.h>
 
 #define MAXH 80
 #define MAXV 25

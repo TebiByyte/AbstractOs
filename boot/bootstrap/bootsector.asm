@@ -1,5 +1,5 @@
-org 0x7C00
-bits 16
+[org 0x7C00]
+[bits 16]
 ;Steps of this boot sector are as follows:
 ;1.) Load additional code to find the main kernel within our file system
 ;2.) Enter long mode
@@ -34,7 +34,7 @@ _LoadExtendedBoot:
     mov bx, 0x7E00
     call diskload
     ret
-
+;This call can possibly be optimized to one call to the drive, saving some space in the boot sector
 _LoadChainLoader:
     ;This should eventually analyze the drive geometry 
     mov dl, [BOOTDRIVE]
@@ -75,6 +75,7 @@ times 510 - ($ - $$) db 0
 dw 0xaa55; boot signature
 
 bits 16
+global endkernel
 
 _Enable_SSE:
     mov eax, cr0
@@ -125,7 +126,7 @@ _EnterLongMode:
     or eax, 1 << 8
     wrmsr
     mov eax, cr0
-    or eax, 1 << 31 | 1 << 0
+    or eax, 1 << 31 | 1 << 0 ; 32 bit paging being used here, I may eventually want to change this to PAE mode
     mov cr0, eax 
     ;Now switch into the sub mode
 
@@ -147,8 +148,6 @@ Realm64:
     mov rax, 0x1F201F201F201F20   ; Set the A-register to 0x1F201F201F201F20.
     mov ecx, 500                  ; Set the C-register to 500.
     rep stosq  
-    mov ebp, 0x90000
-    mov esp, ebp
     mov rax, CHAINLOADER_OFFSET
     jmp rax
     jmp $

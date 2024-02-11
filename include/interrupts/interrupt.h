@@ -26,6 +26,7 @@ typedef struct __attribute__((__packed__)) {
     uint8 ss;
 } int_frame;
 
+void lidt(struct idt_ptr IDTR);
 void idt_set_entry(uint32 entry, uint64 address, uint8 selector, uint8 type_attr);
 void int_init();
 __attribute__((interrupt)) void int_blank(int_frame* frame);
