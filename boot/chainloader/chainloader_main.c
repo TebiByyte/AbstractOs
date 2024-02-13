@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <devices/pic/pic.h>
 #include <interrupts/interrupt.h>
+#include <devices/pci/pci.h>
 
 extern uint32 endkernel;
 
@@ -20,8 +21,16 @@ void chainloader_entry(){
 
     int memoryEntryCount = *((uint32*)0x700); //Retrieve memory map structure from 0x8000 
     smap_entry_t* entryptr = (smap_entry_t*)0x704;
-    screen_print_str("Start memory detection: --------------------\n");
-    printMemoryMapOutput(memoryEntryCount, entryptr);
+    //printMemoryMapOutput(memoryEntryCount, entryptr);
+    uint32* pci_count = (uint32*)0x10004;
+    pci_device_t* device_list = (pci_device_t*)0x1000F;
+
+    find_pci_devices(pci_count, device_list, 0);
+    screen_printf("si\n", "Number of PCI devices found: ", *pci_count);
+
+    for (int i = 0; i < *pci_count; i++){
+        screen_printf("shsh\n", "PCI found. Class code: 0x", device_list[i].device_class, ", Subclass code: 0x", device_list[i].device_subclass);
+    }
 
     picd_init();
     int_init();
