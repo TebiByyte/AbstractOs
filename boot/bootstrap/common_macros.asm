@@ -1,0 +1,6 @@
+%define DRV_NUM_LOCATION        0x7A00
+%define DAP_STRUCT_LOCATION     0x0600
+%define GPT_ENTRY_LOCATION      0x0500
+%define STAGE2_LOCATION         0x7D00
+%define STAGE3_LOCATION         0x9000
+%define STAGE2_SIGNATURE        0x2222

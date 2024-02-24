@@ -4,8 +4,11 @@
 ;1.) Load additional code to find the main kernel within our file system
 ;2.) Enter long mode
 ;3.) Enter the kernel
-;Note that I won't be setting up paging until later on
-;TODO: Restructure this code so it's not taking up so much space (There's no room for the MBR partition table)
+
+;NOTE FOR NEXT TIME I WORK ON THIS!!!
+;This is going to have to change drastically, it's moving to a multistage boot process to facilitate a GPT partition table
+;Stage 1: this code is reduced to having a hard 512 byte limit. In this stage, we load in code from the very first partition. The first parition will ALWAYS contain boot code, it should be marked as so to not disturb it
+;Stage 2: After being loaded into 0x7F00, this stage sets up SSE, Long Mode, etc etc. This also loads in C code needed to read the file system and load a kernel
 
 ;Zero all the segment registers early 
 xor ax, ax
@@ -25,7 +28,7 @@ jmp $ ;Safety hang
 
 _LoadExtendedBoot:
     mov [BOOTDRIVE], dl
-    mov al, 2 ;Load in 2 sectors, so that we can enter long mode from outside our bootsector
+    mov al, 1 ;Load in 2 sectors, so that we can enter long mode from outside our bootsector
     mov ch, 0x0 ;Select cylinder 0
     mov dh, 0x0 ;Select head 0
     mov cl, 0x02 ;Start reading from second sector (i.e. after the boot sector)
@@ -35,12 +38,11 @@ _LoadExtendedBoot:
     call diskload
     ret
 ;This call can possibly be optimized to one call to the drive, saving some space in the boot sector
+;Update this to use a different bios interrupt mode. INT=13h AH=42h
+;This should fix the issue with drive geometry being a factor
 _LoadChainLoader:
-    ;This should eventually analyze the drive geometry 
     mov dl, [BOOTDRIVE]
-    mov ax, loadingChainLoaderMsg
-    call _printString
-    mov al, 0x32
+    mov al, 60
     mov ch, 0x0
     mov dh, 0x0
     mov cl, 0x03
@@ -56,26 +58,23 @@ _LoadChainLoader:
 %include 'bootstrap/diskload.asm'
 BOOTDRIVE: db 0x80
 hellomsg: db "Loaded successfully, loading addtional code from disk", 0xD, 0xA, 0
-loadingChainLoaderMsg: db "Successfully enabled SSE, loading chain loader and switching to long mode", 0xD, 0xA, 0
 debugmsg: db "Loaded additional code and mapped memory", 0xD, 0xA, 0
-CHAINLOADER_OFFSET equ 0x7F00
-times 510 - ($ - $$) db 0
-;times 0x1BE - ($ - $$) db 0; Pad out to 446 bytes so we can include a partition table
+CHAINLOADER_OFFSET equ 0x8000
+times 446 - ($ - $$) db 0
 ;Begin the partition table
 ;Parition entry 1
-;db 0x80; bootable
-;times 15 db 0; We don't know where we want the partition to start, or any other data about it yet, so leave this blank for now.
+times 16 db 0; We don't know where we want the partition to start, or any other data about it yet, so leave this blank for now.
 ;The rest of these entries should just be zeros (invalid entries)
 ;Parition entry 2
-;times 16 db 0
+times 16 db 0
 ;Parition entry 3
-;times 16 db 0
+times 16 db 0
 ;Parition entry 4
-;times 16 db 0
+times 16 db 0
+times 510 - ($ - $$) db 0
 dw 0xaa55; boot signature
 
 bits 16
-global endkernel
 
 _Enable_SSE:
     mov eax, cr0
