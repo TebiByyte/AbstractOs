@@ -36,7 +36,7 @@ stage2: $(bootstrapDir)/stage2.asm
 	nasm $^ $(nasmBinArgs) -o $@.bin
 
 stage3: $(asmobjs) $(cobjs)
-	ld -o $@.bin -T boot/Linker -Ttext 0x9000 $^ --oformat binary 
+	ld -o $@.bin -T boot/Linker -Ttext 0xB000 $^ --oformat binary 
 
 %.o: %.c $(cinc) 
 	gcc -m64 -I $(stage3dir) -I $(includes) $(compileFlags) -c $< -o $@

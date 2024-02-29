@@ -2,5 +2,9 @@
 %define DAP_STRUCT_LOCATION     0x0600
 %define GPT_ENTRY_LOCATION      0x0500
 %define STAGE2_LOCATION         0x7D00
-%define STAGE3_LOCATION         0x9000
+%define STAGE3_LOCATION         0xB000
 %define STAGE2_SIGNATURE        0x2222
+%define MEM_MAP_LOCATION        0x0700
+%define PAGE_TABLE_LOCATION     0x1000
+
+;0x075300 limit

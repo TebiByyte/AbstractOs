@@ -1,4 +1,5 @@
 ;Expects the pointer to the string to be inside of ax
+[bits 16]
 print_string:
     push bx ;Push bx to the stack so it can be restored later
     mov bx, ax ;Move the contents of ax into bx

@@ -1,13 +1,12 @@
 ;Stage 1 goal: Load stage 2 from the first partition in the boot drive (must be present there, this will begin at LBA=35) and jump to it
 [org 0x7C00]
-[bits 16]
+bits 16
 %include 'common_macros.asm'
 ;-----------------MAIN RUNTIME-----------------------------
 xor ax, ax
 mov ds, ax
 mov es, ax
 mov ss, ax
-mov sp, ax
 mov [DRV_NUM_LOCATION], dl ;Save our drive number
 mov ah, 0x41
 mov bx, 0x55AA
