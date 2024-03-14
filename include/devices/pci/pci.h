@@ -15,7 +15,8 @@ typedef struct pci_device {
 } pci_device_t;
 
 uint32 read_pci_config(uint8 bus, uint8 device, uint8 function, uint8 register);
-void find_pci_devices(uint32* device_count_buffer, pci_device_t* buffer, uint8 bus);
+void find_all_pci_devices(uint32* device_count_buffer, pci_device_t* buffer);
+void find_pci_devices_on_bus(uint32* device_count_buffer, pci_device_t* buffer, uint8 bus);
 uint16 get_vendor_id(uint8 bus, uint8 device, uint8 function);
 uint8 get_class_code(uint8 bus, uint8 device, uint8 function);
 uint8 get_subclass_code(uint8 bus, uint8 device, uint8 function);
