@@ -27,7 +27,7 @@ void find_pci_devices_on_bus(uint32* device_count_buffer, pci_device_t* buffer, 
     for (uint8 device = 0; device < 32; device++){//Start by scanning all the devices on the selected bus
         if (get_vendor_id(bus, device, 0) == 0xFFFF) continue; // device doesn't exist
 
-        if (get_header_type(bus, device, 0) & 0x80 != 0){
+        if ((get_header_type(bus, device, 0) & 0x80) != 0){
             //multi function device
             for (uint8 func = 1; func < 8; func++){
                 if (get_class_code(bus, device, func) == 0x6 && get_subclass_code(bus, device, 0) == 0x4){

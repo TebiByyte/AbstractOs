@@ -46,7 +46,9 @@ stage3: $(asmobjs) $(cobjs)
 	nasm $< -f elf64 -o $@
 
 run-qemu:
+	#qemu-system-x86_64 -hda $(outFile)
 	qemu-system-x86_64 -device piix3-ide,id=ide -drive id=disk,file=$(outFile),format=raw,if=none -device ide-hd,drive=disk,bus=ide.0
+	#qemu-system-x86_64 -drive id=disk,file=$(outFile),if=none -device ahci,id=ahci -device ide-hd,drive=disk,bus=ahci.0
 
 clean: 
 	rm -f $(outFile) stage1.bin stage2.bin stage3.bin $(cobjs) $(asmobjs) *.bin *.o $(buildDir)/disassmbly.asm

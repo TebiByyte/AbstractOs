@@ -2,6 +2,7 @@
 outFile=$1
 imageSize=$2
 
+mkdir -p build/image/
 cat stage2.bin stage3.bin > bootpart.bin 
 partsize=$(du -h bootpart.bin | cut -f 1)
 dd if=/dev/zero of=$outFile bs=$imageSize count=1 
