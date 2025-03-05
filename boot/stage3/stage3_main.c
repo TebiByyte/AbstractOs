@@ -51,8 +51,15 @@ void chainloader_entry(){
 
     for (int i = 0; i < *pci_count; i++){
         screen_printf("shsh\n", "PCI found. Class code: 0x", device_list[i].device_class, ", Subclass code: 0x", device_list[i].device_subclass);
-		uint32 progIF = (read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 0x02) & 0xFF00) >> 8;
-		screen_printf("sh\n", "  Prog IF: ", progIF);
+        pci_address_t device_address;
+        device_address.bus = device_list[i].bus;
+        device_address.device = device_list[i].device;
+        device_address.function = device_list[i].function;
+
+		uint32 progIF = read_property(device_address, PROG_IF_REG);
+        //uint32 progIF = (read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 0x02) >> 8) & 0xFF;
+        screen_printf("sh\n", "  Raw Register: ", read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 2));
+        screen_printf("sh\n", "  Prog IF: ", progIF);
     }
 
     picd_init();

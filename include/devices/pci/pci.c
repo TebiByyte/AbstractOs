@@ -62,6 +62,20 @@ uint8 get_header_type(uint8 bus, uint8 device, uint8 function){
     return (read_pci_config(bus, device, function, 3) >> 16) & 0xFF;
 }
 
+
+//(read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 0x02) >> 8) & 0xFF;
+uint32 read_property(pci_address_t address, pci_reg_t property){
+    uint32 register_value = read_pci_config(address.bus, address.device, address.function, property.reg_offset);
+    uint32 bit_mask = 0;
+
+    for (int i = 0; i < property.width; i++){
+        bit_mask <<= 1;
+        bit_mask |= 1;
+    }
+    
+    return (register_value >> property.bit_offset) && bit_mask; 
+}
+
 //TODO I could probably add more information to this
 pci_device_t get_device_info_struct(uint8 bus, uint8 device, uint8 function){
     pci_device_t pci_device_info;

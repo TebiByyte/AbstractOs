@@ -5,12 +5,20 @@
 #define PCI_CONFIG_ADDRESS 0xCF8
 #define PCI_CONFIG_DATA 0xCFC
 
+#define PROG_IF_REG (pci_reg_t){.reg_offset = 0x02, .width = 8, .bit_offset = 8}
+
 //TODO I need to refactor this code so it provides a better interface to PCI devices.
 //Requirements: 
 //  - The programmer should not have to worry about register offsets.
 //  - I think the idea is to encapsulate this address space as a triplet of values (A, B, C) maps to the register at offset A at (B determines uint8, uint16, uint32) at bit offset C
 //  - And then add macros to refer to common names such as PROGIF to represent the "address" of the property
 //  Example: class code would reside at address (0x2, 0x1, 0x0)
+
+typedef struct pci_register{
+    uint32 reg_offset;
+    uint8 width;
+    uint8 bit_offset;
+} pci_reg_t;
 
 typedef struct pci_address{
     uint8 bus;
@@ -30,6 +38,7 @@ typedef struct pci_device { // I think this should only include immutable proper
 uint32 read_pci_config(uint8 bus, uint8 device, uint8 function, uint8 register);
 void find_all_pci_devices(uint32* device_count_buffer, pci_device_t* buffer);
 void find_pci_devices_on_bus(uint32* device_count_buffer, pci_device_t* buffer, uint8 bus);
+uint32 read_property(pci_address_t address, pci_reg_t property);
 uint16 get_vendor_id(uint8 bus, uint8 device, uint8 function);
 uint8 get_class_code(uint8 bus, uint8 device, uint8 function);
 uint8 get_subclass_code(uint8 bus, uint8 device, uint8 function);
