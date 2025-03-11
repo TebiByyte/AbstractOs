@@ -1,3 +1,5 @@
+#include "common/port.h"
+#include "common/type.h"
 #include <typeout.h>
 #include <memory/mem.h>
 #include <stddef.h>
@@ -36,10 +38,10 @@ void chainloader_entry(){
 
     uint32* pci_count = (uint32*)mem_alloc(mem_struct, sizeof(uint32));
     *pci_count = 0; // Initialize this to 0
-    pci_device_t* device_list = (pci_device_t*)(pci_count + sizeof(uint32));
+    pci_device* device_list = (pci_device*)(pci_count + sizeof(uint32));
 
     find_all_pci_devices(pci_count, device_list);
-    mem_alloc(mem_struct, (*pci_count) * sizeof(pci_device_t)); //This memory manager lets me get away with sneaky allocations like this after I've already written to the memory
+    mem_alloc(mem_struct, (*pci_count) * sizeof(pci_device)); //This memory manager lets me get away with sneaky allocations like this after I've already written to the memory
     uint8* test_allocation = (uint8*)mem_alloc(mem_struct, 0x1000);
 
     if (test_allocation == 0){
@@ -51,16 +53,87 @@ void chainloader_entry(){
 
     for (int i = 0; i < *pci_count; i++){
         screen_printf("shsh\n", "PCI found. Class code: 0x", device_list[i].device_class, ", Subclass code: 0x", device_list[i].device_subclass);
-        pci_address_t device_address;
-        device_address.bus = device_list[i].bus;
-        device_address.device = device_list[i].device;
-        device_address.function = device_list[i].function;
+        pci_address device_address = device_list[i].address;
 
-		uint32 progIF = read_property(device_address, PROG_IF_REG);
+		pci_header_reg_2 reg_2 = {.reg_value = read_pci_register(device_address, 0x02)};
         //uint32 progIF = (read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 0x02) >> 8) & 0xFF;
-        screen_printf("sh\n", "  Raw Register: ", read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 2));
-        screen_printf("sh\n", "  Prog IF: ", progIF);
+        screen_printf("sh\n", "  Raw Register: ", reg_2.reg_value);
+        screen_printf("sh\n", "  Prog IF: ", reg_2.prog_if);
     }
+
+    //Hard drive read test: PASSED
+    //TODO: abstract these things into functions
+    uint16 buffer[256];
+
+    uint8 base = (uint8)0x1F0;
+
+    screen_printf("h\n", p_read8(0x1F7));
+
+    p_write8(0x1F6, 0xA0); 
+    p_write8(0x1F2, 0);
+    p_write8(0x1F3, 0);
+    p_write8(0x1F4, 0);
+    p_write8(0x1F5, 0);
+    p_write8(0x1F7, 0xEC);
+
+    if (p_read8(0x1F4) != 0 || p_read8(0x1F5) != 0){
+        screen_print_str("Drive is not ATA\n");
+    } else {
+        screen_print_str("Drive is ATA\n");
+    }
+
+    while (true){
+        if ((p_read8(0x1F7) & 0x80) == 0){
+            break;
+        }
+    }
+
+    uint8 status = p_read8(0x1F7);
+
+    screen_print_int(status, 2);
+
+    if (status == 0){
+        screen_print_str("No PIO drive detected\n");
+    } else {
+        screen_print_str("PIO mode drive detected\n");
+    }
+
+    while (true){
+        if ((p_read8(0x1F7) & 0x08) != 0){
+            break;
+        }
+    }
+
+    for (int j = 0; j<256; j++){
+        buffer[j] = p_read16(0x1F0);
+    }
+
+    screen_print_int(p_read8(0x1F7), 2);
+    screen_print_str("\n");
+
+    p_write8(0x1F6, 0xE0); 
+    p_write8(0x1F2, 1);
+    p_write8(0x1F7, 0x20);
+
+    status = p_read8(0x1F7);
+    screen_print_int(status, 2);
+    screen_print_str("\n");
+
+    if (status & 0x1){
+        screen_printf("sh\n", "Error reported: ", p_read8(0x1F1));
+    }
+
+    while (true){
+        if ((p_read8(0x1F7) & 0x80) == 0){
+            break;
+        }
+    }
+
+    for (int j = 0; j<256; j++){
+        buffer[j] = p_read16(0x1F0);
+    }
+
+    screen_printf("h\n", buffer[255]);
 
     picd_init();
     int_init();

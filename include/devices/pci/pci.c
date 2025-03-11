@@ -1,21 +1,16 @@
 #include <devices/pci/pci.h>
 #include <common/port.h>
 
-uint32 read_pci_config(uint8 bus, uint8 device, uint8 function, uint8 reg){
-    uint32 address = 0x80000000 | (bus << 16) | (device << 11) | (function << 6) | (reg << 2);
-    p_write32(PCI_CONFIG_ADDRESS, address);
+void find_all_pci_devices(uint32* device_count_buffer, pci_device* buffer){
+    pci_header_reg_3 reg_3_value = {.reg_value = read_pci_register((pci_address){.bus=0, .device=0, .function=0}, 0x03)};
 
-    return p_read32(PCI_CONFIG_DATA);
-}
-
-void find_all_pci_devices(uint32* device_count_buffer, pci_device_t* buffer){
-    uint8 header_type = get_header_type(0, 0, 0);
-    if ((header_type & 0x80) == 0){
+    if ((reg_3_value.header_type & 0x80) == 0){
         //Single PCI host controller
         find_pci_devices_on_bus(device_count_buffer, buffer, 0);
     } else {
         for (uint8 bus = 0; bus < 8; bus++){
-            if (get_vendor_id(0, 0, bus) != 0xFFFF) break;
+            pci_header_reg_0 reg_0_value = {.reg_value = read_pci_register((pci_address){.bus=bus, .device=0, .function=0}, 0)};
+            if (reg_0_value.vendor_id != 0xFFFF) break;
             find_pci_devices_on_bus(device_count_buffer, buffer, bus);
         }
     }
@@ -23,68 +18,49 @@ void find_all_pci_devices(uint32* device_count_buffer, pci_device_t* buffer){
 
 //This could be made more safe by calculating the number of devices first, but this is fine for now
 //TODO handle multiple PCI host controllers (simply check if the device at 0:0:0 is multifunction, if it is, run this code on each function as the bus number)
-void find_pci_devices_on_bus(uint32* device_count_buffer, pci_device_t* buffer, uint8 bus){
+void find_pci_devices_on_bus(uint32* device_count_buffer, pci_device* buffer, uint8 bus){
     for (uint8 device = 0; device < 32; device++){//Start by scanning all the devices on the selected bus
-        if (get_vendor_id(bus, device, 0) == 0xFFFF) continue; // device doesn't exist
+        pci_address address_f0 = (pci_address){.bus=bus, .device=device, .function=0};
+        pci_header_reg_3 reg_3_f0 = {.reg_value = read_pci_register(address_f0, 0x03)};
+        pci_header_reg_0 reg_0_f0 = {.reg_value = read_pci_register(address_f0, 0x00)};
 
-        if ((get_header_type(bus, device, 0) & 0x80) != 0){
+        if (reg_0_f0.vendor_id == 0xFFFF) continue; // device doesn't exist
+
+        if ((reg_3_f0.header_type & 0x80) != 0){
             //multi function device
             for (uint8 func = 1; func < 8; func++){
-                if (get_class_code(bus, device, func) == 0x6 && get_subclass_code(bus, device, 0) == 0x4){
+                pci_address device_address = (pci_address){.bus=bus, .device=device, .function=func};
+                pci_header_reg_2 reg_2 = {.reg_value = read_pci_register(device_address, 0x02)};
+
+                if (reg_2.class_code == 0x6 && reg_2.sub_class_code == 0x4){
                     //PCI-to-PCI bridge, this needs to be checked as well
-                    find_pci_devices_on_bus(device_count_buffer, buffer, (read_pci_config(bus, device, func, 0x6) >> 8) & 0xFF);
+                    find_pci_devices_on_bus(device_count_buffer, buffer, (read_pci_register(device_address, 0x6) >> 8) & 0xFF);
                 } else {
-                    buffer[*device_count_buffer] = get_device_info_struct(bus, device, func);
+                    buffer[*device_count_buffer] = (pci_device){
+                        .address = device_address, 
+                        .device_class = reg_2.class_code, 
+                        .device_subclass = reg_2.sub_class_code
+                    };
                     (*device_count_buffer)++;
                 }
             }
         } else {
             //Single device, add to the list
-            buffer[*device_count_buffer] = get_device_info_struct(bus, device, 0);
+            pci_header_reg_2 reg_2 = {.reg_value = read_pci_register(address_f0, 0x02)};
+
+            buffer[*device_count_buffer] = (pci_device){
+                .address = address_f0,
+                .device_class = reg_2.class_code,
+                .device_subclass = reg_2.sub_class_code
+            };
             *device_count_buffer = *device_count_buffer + 1;
         }
     }
 }
 
-uint16 get_vendor_id(uint8 bus, uint8 device, uint8 function){
-    return read_pci_config(bus, device, function, 0) & 0xFFFF;
-}
+uint32 read_pci_register(pci_address address, uint8 reg_num){
+    uint32 config_value = 0x80000000 | (address.bus << 16) | (address.device << 11) | (address.function << 6) | (reg_num << 2);
+    p_write32(PCI_CONFIG_ADDRESS, config_value);
 
-uint8 get_class_code(uint8 bus, uint8 device, uint8 function){
-    return read_pci_config(bus, device, function, 2) >> 24;
-}
-
-uint8 get_subclass_code(uint8 bus, uint8 device, uint8 function){
-    return read_pci_config(bus, device, function, 2) >> 16;
-}
-
-uint8 get_header_type(uint8 bus, uint8 device, uint8 function){
-    return (read_pci_config(bus, device, function, 3) >> 16) & 0xFF;
-}
-
-
-//(read_pci_config(device_list[i].bus, device_list[i].device, device_list[i].function, 0x02) >> 8) & 0xFF;
-uint32 read_property(pci_address_t address, pci_reg_t property){
-    uint32 register_value = read_pci_config(address.bus, address.device, address.function, property.reg_offset);
-    uint32 bit_mask = 0;
-
-    for (int i = 0; i < property.width; i++){
-        bit_mask <<= 1;
-        bit_mask |= 1;
-    }
-    
-    return (register_value >> property.bit_offset) && bit_mask; 
-}
-
-//TODO I could probably add more information to this
-pci_device_t get_device_info_struct(uint8 bus, uint8 device, uint8 function){
-    pci_device_t pci_device_info;
-    pci_device_info.bus = bus;
-    pci_device_info.device = device;
-    pci_device_info.function = function;
-    pci_device_info.device_class = get_class_code(bus, device, function);
-    pci_device_info.device_subclass = get_subclass_code(bus, device, function);
-    pci_device_info.header_type = get_header_type(bus, device, function);
-
-    return pci_device_info;
+    return p_read32(PCI_CONFIG_DATA);
 }

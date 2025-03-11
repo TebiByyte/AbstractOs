@@ -1,4 +1,7 @@
 #!/bin/bash
+#Consider using a layout.json file instead. sfdisk is capable of this
+#https://stackoverflow.com/questions/12150116/how-to-script-sfdisk-or-parted-for-multiple-partitions
+#Use mkfs.ext2 -E $(sectorOffset * 512) -d <path/to/directory> to format the partition and create the files
 outFile=$1
 imageSize=$2
 
