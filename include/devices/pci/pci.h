@@ -22,16 +22,16 @@ typedef struct pci_device {
 typedef union pci_header_reg_0 {
     uint32 reg_value;
     struct __attribute__((__packed__)) {
-        uint16 device_id;
         uint16 vendor_id;
+        uint16 device_id;
     };
 } pci_header_reg_0;
 
 typedef union pci_header_reg_1 {
     uint32 reg_value;
     struct __attribute__((__packed__)) {
-        uint16 status;
         uint16 command;
+        uint16 status;
     };
 } pci_header_reg_1;
 
@@ -39,10 +39,10 @@ typedef union pci_header_reg_1 {
 typedef union pci_header_reg_2 {
     uint32 reg_value;
     struct __attribute__((__packed__)) {
-        uint8 class_code;
-        uint8 sub_class_code;
-        uint8 prog_if;
         uint8 rev_id;
+        uint8 prog_if;
+        uint8 sub_class_code;
+        uint8 class_code;
     };
 } pci_header_reg_2;
 
@@ -50,10 +50,10 @@ typedef union pci_header_reg_2 {
 typedef union pci_header_reg_3 {
     uint32 reg_value;
     struct __attribute__((__packed__)) {
-        uint8 bist;
-        uint8 header_type;
-        uint8 lat_time;
         uint8 cache_size;
+        uint8 lat_time;
+        uint8 header_type;
+        uint8 bist;
     };
 } pci_header_reg_3;
 
