@@ -1,16 +1,18 @@
 #include <mem_mgt.h>
 
-void mem_initialize(mem_alloc_t* mem_struct, void* start, uint32 limit){
-    mem_struct->mem_start = start;
-    mem_struct->mem_limit = limit;
-    mem_struct->mem_used = 0;
+mem_alloc_t allocator_info;
+
+void mem_initialize(void* start, uint32 limit){
+    allocator_info.mem_start = start;
+    allocator_info.mem_limit = limit;
+    allocator_info.mem_used = 0;
 }
 
-void* mem_alloc(mem_alloc_t* mem_struct, uint32 size){
-    if ((mem_struct->mem_used + size) >= mem_struct->mem_limit) return 0; //Error case, if the memory used will be greater than the memory limit
+void* mem_alloc(uint32 size){
+    if ((allocator_info.mem_used + size) >= allocator_info.mem_limit) return 0; //Error case, if the memory used will be greater than the memory limit
 
-    void* mem_start = mem_struct->mem_start + mem_struct->mem_used;
-    mem_struct->mem_used += size;
+    void* mem_start = allocator_info.mem_start + allocator_info.mem_used;
+    allocator_info.mem_used += size;
 
     return mem_start;
 }

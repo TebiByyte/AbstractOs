@@ -9,8 +9,8 @@ typedef struct memory_allocator {
     uint32 mem_limit;
 } mem_alloc_t;
 
-void mem_initialize(mem_alloc_t* mem_struct, void* start, uint32 limit);
-void* mem_alloc(mem_alloc_t* mem_struct, uint32 size);
+void mem_initialize(void* start, uint32 limit);
+void* mem_alloc(uint32 size);
 
 //Memory utilities
 void mem_set(void* mem_location, uint8 value, uint32 range);

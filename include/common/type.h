@@ -13,5 +13,5 @@ typedef char  int8;
 
 typedef enum {true = 1, false = 0} bool;
 
-#define NULL 0;
+#define NULL 0
 #endif
