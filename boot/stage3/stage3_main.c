@@ -74,9 +74,6 @@ void chainloader_entry(){
     //pci_device* device_list = (pci_device*)(pci_count + sizeof(uint32));
 
     pci_device *device_list = find_all_pci_devices(pci_count);
-    //mem_alloc((*pci_count) * sizeof(pci_device)); //This memory manager lets me get away with sneaky allocations like this after I've already written to the memory
-    //I am now finding out why this is stupid as fuck. Don't. Do. This. 
-
     //screen_printf("sh\n", "PCI devices found: ", *pci_count);
 
 
@@ -96,11 +93,21 @@ void chainloader_entry(){
         //screen_printf("sh\n", "  Prog IF: ", reg_2.prog_if);
     }*/
 
+    /*pci_address isa_bridge_addr = (pci_address){.bus=0, .device=1, .function=0};
     
-    uint32* ide_controller_count = ide_find_controllers(device_list, *pci_count);
-    ide_controller *controller_array = (ide_controller *)(ide_controller_count + sizeof(uint32));
+    pci_header_reg_3 reg_3_bridge = (pci_header_reg_3)read_pci_register(isa_bridge_addr, 0x3);
 
-    screen_printf("sh\n", "Number of ide controllers found: ", *ide_controller_count);
+    screen_print_int(reg_3_bridge.header_type, 2);
+    screen_print_char('\n');*/
+
+
+ 
+    uint32* ide_controller_count = ide_find_controllers(device_list, *pci_count);
+    ide_controller *controller_array = (ide_controller *)((void*)ide_controller_count + sizeof(uint32));
+
+    //screen_printf("sh\n", "Number of ide controllers found: ", *ide_controller_count);
+
+    write_pci_register((pci_address){.bus=0,.device=1,.function=4}, 0x4, 0x1F0);
 
     for (int drive_index = 0; drive_index < *ide_controller_count; drive_index++){
         ide_controller current = controller_array[drive_index];
@@ -111,10 +118,22 @@ void chainloader_entry(){
             screen_print_str("PCI native mode IDE controller found\n");
         }
 
-        /*screen_printf("s hs hs h\n", "PCI address: ", 
+        screen_printf("s hs hs h\n", "PCI address: ", 
                       current.pci_device_controller->address.bus, ", ", 
                       current.pci_device_controller->address.device, ", ", 
-                      current.pci_device_controller->address.function);*/
+                      current.pci_device_controller->address.function);
+
+
+        uint8 progif = ((pci_header_reg_2)read_pci_register(current.pci_device_controller->address, 0x2)).prog_if;
+
+        screen_print_int(progif, 2);
+        screen_print_char('\n');
+
+        screen_printf("sh\n", "ID: ", read_pci_register(current.pci_device_controller->address, 0));
+        screen_printf("sh\n", "Bar0: ", read_pci_register(current.pci_device_controller->address, 0x4));
+        screen_printf("sh\n", "Bar1: ", read_pci_register(current.pci_device_controller->address, 0x5));
+        screen_printf("sh\n", "Bar2: ", read_pci_register(current.pci_device_controller->address, 0x6));
+        screen_printf("sh\n", "Bar4: ", read_pci_register(current.pci_device_controller->address, 0x7));
     }
 
     /*uint8 base = (uint8)0x1F0;

@@ -58,6 +58,7 @@ typedef union pci_header_reg_3 {
 } pci_header_reg_3;
 
 uint32 read_pci_register(pci_address address, uint8 reg_num);
+void write_pci_register(pci_address address, uint8 reg_num, uint32 value);
 pci_device *find_all_pci_devices(uint32* device_count_buffer);
 void find_pci_devices_on_bus(uint32* device_count_buffer, uint8 bus);
 

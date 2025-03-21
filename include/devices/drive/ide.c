@@ -1,4 +1,3 @@
-#include "typeout.h"
 #include <devices/drive/ide.h>
 #include <common/type.h>
 #include <mem_mgt.h>
@@ -9,8 +8,8 @@ ide_controller ide_create_device_entry(pci_device *device_ptr){
 
     //Get the prog_if byte from the pci config space
     uint8 progif = (pci_header_reg_2){.reg_value = read_pci_register(device_ptr->address, 0x2)}.prog_if;
-    screen_print_int(progif, 2);
-    screen_print_char('\n');
+    //screen_print_int(progif, 2);
+    //screen_print_char('\n');
     bool primary_pci = (progif & OPM_PRIMARY) != 0;
     bool secondary_pci = (progif & OPM_SECONDARY) != 0;
 
@@ -25,7 +24,8 @@ ide_controller ide_create_device_entry(pci_device *device_ptr){
     if (secondary_pci) {
         //Read BAR2
     }
-    
+
+    //Check DMA 
 
     return controller;
 

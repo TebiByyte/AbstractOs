@@ -58,23 +58,22 @@ void find_pci_devices_on_bus(uint32* device_count_buffer, uint8 bus){
                     (*device_count_buffer)++;
                 }
             }
-        } else {
-            //Single device, add to the list
-            pci_header_reg_2 reg_2 = {.reg_value = read_pci_register(address_f0, 0x02)};
+        } 
+        pci_header_reg_2 reg_2 = {.reg_value = read_pci_register(address_f0, 0x02)};
 
-            pci_device *new_device = (pci_device*)mem_alloc(sizeof(pci_device));
-            new_device->address = address_f0;
-            new_device->device_class = reg_2.class_code;
-            new_device->device_subclass = reg_2.sub_class_code;
-            //screen_printf("shsh\n", "class: ", reg_2.class_code, " subclass: ", reg_2.sub_class_code);
+        pci_device *new_device = (pci_device*)mem_alloc(sizeof(pci_device));
+        new_device->address = address_f0;
+        new_device->device_class = reg_2.class_code;
+        new_device->device_subclass = reg_2.sub_class_code;
+        //screen_printf("shsh\n", "class: ", reg_2.class_code, " subclass: ", reg_2.sub_class_code);
 
-            /*buffer[*device_count_buffer] = (pci_device){
+        /*buffer[*device_count_buffer] = (pci_device){
                 .address = address_f0,
                 .device_class = reg_2.class_code,
                 .device_subclass = reg_2.sub_class_code
             };*/
-            (*device_count_buffer)++;
-        }
+        (*device_count_buffer)++;
+
     }
 }
 
@@ -84,3 +83,10 @@ uint32 read_pci_register(pci_address address, uint8 reg_num){
 
     return p_read32(PCI_CONFIG_DATA);
 }
+
+void write_pci_register(pci_address address, uint8 reg_num, uint32 value){
+    uint32 config_value = 0x80000000 | (address.bus << 16) | (address.device << 11) | (address.function << 6) | (reg_num << 2);
+    p_write32(PCI_CONFIG_ADDRESS, config_value);
+    p_write32(PCI_CONFIG_DATA, value);
+}
+
