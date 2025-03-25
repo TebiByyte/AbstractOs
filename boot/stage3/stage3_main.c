@@ -26,33 +26,10 @@ void page_exception_handler(int_frame* int_frame, uint64 error_code){
     while(1){}
 }
 
-void test_allocator(){
-    uint32 *test_array = (uint32 *)mem_alloc(8 * sizeof(uint32));
-
-    for (uint32 i = 0; i < 8; i++){
-        test_array[i] = i;
-    }
-
-    uint32 *test_array2 = (uint32 *)mem_alloc(8 * sizeof(uint32));
-
-    for (uint32 i = 0; i < 8; i++){
-        test_array2[i] = i + 8;
-    }
-
-    for (uint32 i = 0; i < 16; i++){
-        if (test_array[i] != i){
-            screen_print_str("ALLOCATION FAILED!\n");
-
-            for (uint32 j = 0; j < 16; j++){
-                screen_printf("ish\n", j, ": ", test_array[j]);
-            }
-
-            return;
-        }
-    }
-
-    screen_print_str("ALLOCATION TEST PASSED!");
-}
+//Memory initialization outline steps: 
+//Consult memory map and only allocate memory that is type 1 (free) to virtual address space. 
+//Note: I should add a check to make sure the end of stage 3 in memory is in a free area
+//Map all those areas to be a continguous block of memory 
 
 //TODO create a pageframe allocator
 //TODO test the memory allocator to make sure it's working
@@ -74,7 +51,8 @@ void chainloader_entry(){
     //pci_device* device_list = (pci_device*)(pci_count + sizeof(uint32));
 
     pci_device *device_list = find_all_pci_devices(pci_count);
-    //screen_printf("sh\n", "PCI devices found: ", *pci_count);
+    screen_printf("sh\n", "PCI devices found: ", *pci_count);
+
 
 
     //Hard drive read test: PASSED
@@ -93,48 +71,30 @@ void chainloader_entry(){
         //screen_printf("sh\n", "  Prog IF: ", reg_2.prog_if);
     }*/
 
-    /*pci_address isa_bridge_addr = (pci_address){.bus=0, .device=1, .function=0};
-    
-    pci_header_reg_3 reg_3_bridge = (pci_header_reg_3)read_pci_register(isa_bridge_addr, 0x3);
-
-    screen_print_int(reg_3_bridge.header_type, 2);
-    screen_print_char('\n');*/
-
-
  
     uint32* ide_controller_count = ide_find_controllers(device_list, *pci_count);
     ide_controller *controller_array = (ide_controller *)((void*)ide_controller_count + sizeof(uint32));
 
-    //screen_printf("sh\n", "Number of ide controllers found: ", *ide_controller_count);
+    ide_controller first = controller_array[0];
+    pci_header_reg_1 reg = {.reg_value = read_pci_register(first.pci_device_controller->address, 0x1)};
 
-    write_pci_register((pci_address){.bus=0,.device=1,.function=4}, 0x4, 0x1F0);
+    reg.command = 0;
 
-    for (int drive_index = 0; drive_index < *ide_controller_count; drive_index++){
-        ide_controller current = controller_array[drive_index];
+    write_pci_register(first.pci_device_controller->address, 0x1, 0);
 
-        if (current.primary_channel.mode == IDE_COMPATIBILITY){
-            screen_print_str("Compatibility mode IDE controller found\n");
-        } else {
-            screen_print_str("PCI native mode IDE controller found\n");
-        }
+    screen_printf("h\n", read_pci_register(first.pci_device_controller->address, 0x1));
 
-        screen_printf("s hs hs h\n", "PCI address: ", 
-                      current.pci_device_controller->address.bus, ", ", 
-                      current.pci_device_controller->address.device, ", ", 
-                      current.pci_device_controller->address.function);
+    uint16 id_buff[256];
+    
+    enum ide_id_dev_result drv_id_err = identify_drive(IDE_PRIMARY, 0, (void*)id_buff);
 
-
-        uint8 progif = ((pci_header_reg_2)read_pci_register(current.pci_device_controller->address, 0x2)).prog_if;
-
-        screen_print_int(progif, 2);
-        screen_print_char('\n');
-
-        screen_printf("sh\n", "ID: ", read_pci_register(current.pci_device_controller->address, 0));
-        screen_printf("sh\n", "Bar0: ", read_pci_register(current.pci_device_controller->address, 0x4));
-        screen_printf("sh\n", "Bar1: ", read_pci_register(current.pci_device_controller->address, 0x5));
-        screen_printf("sh\n", "Bar2: ", read_pci_register(current.pci_device_controller->address, 0x6));
-        screen_printf("sh\n", "Bar4: ", read_pci_register(current.pci_device_controller->address, 0x7));
+    if (drv_id_err == IDE_SUCCESS){
+        screen_print_str("Drive 0 located at port\n");
+    } else {
+        screen_print_str("No drive detected\n");
     }
+
+    //screen_printf("sh\n", "Number of ide controllers found: ", *ide_controller_count);
 
     /*uint8 base = (uint8)0x1F0;
 
@@ -228,13 +188,7 @@ void printMemoryMapOutput(int count, smap_entry_t* smap_entries){
         uint32 acpi = smap_entries[i].acpi;
 
         screen_printf("shsis\n", "Memory Location Start: ", base, " | Memory Size: ", size / 1024, " KB");
-
-        if (type == 1){
-            screen_print_str("Free?: yes\n");
-        } else {
-            screen_print_str("Free?: no\n");
-        }
-
+        screen_printf("sh\n", "Type: ", type);
     }
 
     screen_printf("sis\n", "Total memory: ", totalMemory / 1024, " KB");
