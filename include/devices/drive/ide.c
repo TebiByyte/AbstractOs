@@ -69,7 +69,7 @@ void wait_for_data_ready(uint16 base_addr){
 }
 
 void select_drive(uint16 base_addr, uint8 drive, uint8 lba_enable){
-    p_write8(base_addr + IDE_SELECT, 0b10100000 | (lba_enable << 7) | (drive << 4));
+    p_write8(base_addr + IDE_SELECT, 0b10100000 | (lba_enable << 6) | (drive << 4));
 }
 
 //Returns false if there was an error
@@ -107,3 +107,41 @@ enum ide_id_dev_result identify_drive(uint16 base_addr, uint8 drive, void *buffe
     return IDE_SUCCESS;
 }
 
+
+//Does not support 48 bit lba yet
+bool ide_read_sectors(uint16 base_addr, uint8 drive, uint16 sector_num, uint64 lba_start, void *buffer){
+    uint32 lbalo = lba_start & 0xFF;
+    uint32 lbamid = (lba_start & 0xFF00) >> 8;
+    uint32 lbahi = (lba_start & 0xFF0000) >> 16;
+
+    select_drive(base_addr, drive, 1);
+    p_write8(base_addr + IDE_COUNT, sector_num);
+    p_write8(base_addr + IDE_LBALO, lbalo);
+    p_write8(base_addr + IDE_LBAMID, lbamid);
+    p_write8(base_addr + IDE_LBAHI, lbahi);
+
+    p_write8(base_addr + IDE_COMMAND, 0x20);
+
+    wait_for_data_ready(base_addr);
+
+    if ((p_read8(base_addr + IDE_STATUS) & 0x1) != 0){
+        return false;
+    }
+
+    // Note that I need to wait for data after every sector
+
+    for (int sec = 0; sec < sector_num; sec++){
+        for (int j = 0; j < 256; j++){
+            ((uint16*)buffer)[j] = p_read16(base_addr + IDE_DATA);
+        }   
+
+        wait_for_data_ready(base_addr);
+
+        if ((p_read8(base_addr + IDE_STATUS) & 0x1) != 0){
+            return false;
+        }
+
+    }
+
+    return true;
+}

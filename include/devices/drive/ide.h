@@ -50,5 +50,6 @@ void wait_for_drive_ready(uint16 base_addr);
 void wait_for_data_ready(uint16 base_addr);
 void select_drive(uint16 base_addr, uint8 drive, uint8 lba_enable);
 enum ide_id_dev_result identify_drive(uint16 base_addr, uint8 drive, void *buffer);
+bool ide_read_sectors(uint16 base_addr, uint8 drive, uint16 sector_num, uint64 lba_start, void *buffer);
 
 #endif

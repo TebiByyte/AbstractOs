@@ -1,3 +1,4 @@
+#include "common/port.h"
 #include "common/type.h"
 #include "devices/drive/ide.h"
 #include <typeout.h>
@@ -85,7 +86,7 @@ void chainloader_entry(){
     screen_printf("h\n", read_pci_register(first.pci_device_controller->address, 0x1));
 
     uint16 id_buff[256];
-    
+
     enum ide_id_dev_result drv_id_err = identify_drive(IDE_PRIMARY, 0, (void*)id_buff);
 
     if (drv_id_err == IDE_SUCCESS){
@@ -95,76 +96,17 @@ void chainloader_entry(){
     }
 
     //screen_printf("sh\n", "Number of ide controllers found: ", *ide_controller_count);
+    
+    uint8 buffer[512];
 
-    /*uint8 base = (uint8)0x1F0;
+    bool read_success = ide_read_sectors(IDE_PRIMARY, 0, 1, 0, (void*)(&buffer));
 
-    screen_printf("h\n", p_read8(0x1F7));
-
-    p_write8(0x1F6, 0xA0); 
-    p_write8(0x1F2, 0);
-    p_write8(0x1F3, 0);
-    p_write8(0x1F4, 0);
-    p_write8(0x1F5, 0);
-    p_write8(0x1F7, 0xEC);
-
-    if (p_read8(0x1F4) != 0 || p_read8(0x1F5) != 0){
-        screen_print_str("Drive is not ATA\n");
+    if (read_success){
+        screen_printf("h\n", buffer[511]);
     } else {
-        screen_print_str("Drive is ATA\n");
+        screen_print_str("There was an error\n");
+        screen_print_int(p_read8(IDE_PRIMARY + IDE_ERROR), 2);
     }
-
-    while (true){
-        if ((p_read8(0x1F7) & 0x80) == 0){
-            break;
-        }
-    }
-
-    uint8 status = p_read8(0x1F7);
-
-    screen_print_int(status, 2);
-
-    if (status == 0){
-        screen_print_str("No PIO drive detected\n");
-    } else {
-        screen_print_str("PIO mode drive detected\n");
-    }
-
-    while (true){
-        if ((p_read8(0x1F7) & 0x08) != 0){
-            break;
-        }
-    }
-
-    for (int j = 0; j<256; j++){
-        buffer[j] = p_read16(0x1F0);
-    }
-
-    screen_print_int(p_read8(0x1F7), 2);
-    screen_print_str("\n");
-
-    p_write8(0x1F6, 0xE0); 
-    p_write8(0x1F2, 1);
-    p_write8(0x1F7, 0x20);
-
-    status = p_read8(0x1F7);
-    screen_print_int(status, 2);
-    screen_print_str("\n");
-
-    if (status & 0x1){
-        screen_printf("sh\n", "Error reported: ", p_read8(0x1F1));
-    }
-
-    while (true){
-        if ((p_read8(0x1F7) & 0x80) == 0){
-            break;
-        }
-    }
-
-    for (int j = 0; j<256; j++){
-        buffer[j] = p_read16(0x1F0);
-    }
-
-    screen_printf("h\n", buffer[255]);*/
 
     picd_init();
     int_init();
