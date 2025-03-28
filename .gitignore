@@ -4,3 +4,4 @@
 *.hdd
 build
 .cache
+disk_fmt.fmt

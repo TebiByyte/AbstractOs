@@ -48,18 +48,29 @@ def generateUUID():
 def generate_disk_fmt(bootPartSize):
     header = diskFmtHeader.format(imagef=imagePath,start=str(bootPartStart),size=str(diskSize - 34))
     partition1 = partTemplate.format(fileName=imagePath,partitionNum="1",start="34",size=str(bootPartSize),typeUuid=biosBootGUID,uuid=generateUUID(),name="bootpart")
+    fileSystemStart = 34 + bootPartSize + 1
+    partition2 = partTemplate.format(fileName=imagePath,partitionNum="2",start=str(fileSystemStart),size=(fileSystemStart - (diskSize - 34)),typeUuid=fsGUID,uuid=generateUUID(),name="root")
 
     with open(templatePath, "w") as image:
         image.write(header)
         image.write(partition1)
+        image.write(partition2)
 
 
 
 def main():
     bootPartSize = os.path.getsize("stage2.bin") + os.path.getsize("stage3.bin") #TODO make these CL variables
     sizeSectors = math.ceil(bootPartSize / 1024) * 2
+    fsStart = 34 + sizeSectors + 1
 
     generate_disk_fmt(sizeSectors)
+
+    os.system("cat stage2.bin stage3.bin > bootpart.bin")
+    os.system("dd if=/dev/zero of={imgPath} bs=1M count=1".format(imgPath = imagePath))
+    os.system("dd if=stage1.bin of={imgPath} seek=0 conv=notrunc".format(imgPath = imagePath))
+    os.system("sfdisk {imgPath} < {tmplPath}".format(imgPath = imagePath, tmplPath = templatePath))
+    os.system("dd if=bootpart.bin of={imgPath} seek=34 conv=notrunc".format(imgPath = imagePath))
+    os.system("mkfs.ext2 {imgPath} -E offset={offset} -d root".format(imgPath=imagePath, offset=str(fsStart * 512)))
 
 
 

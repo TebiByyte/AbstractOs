@@ -26,7 +26,7 @@ cobjs = $(patsubst %.c, %.o, $(srcs))
 asmobjs = $(patsubst %.asm, %.o, $(asm)) 
 
 disk: stage1 stage2 stage3
-	./makedisk.sh $(outFile) $(imageSize)
+	python3 makedisk.py
 
 stage1: $(bootstrapDir)/stage1.asm
 	nasm $^ $(nasmBinArgs) -o $@.bin
@@ -52,7 +52,7 @@ run-qemu:
 	#qemu-system-x86_64 -device piix4-ide,id=ide -drive id=disk,file=$(outFile),format=raw,if=none -device ide-hd,drive=disk,bus=ide.0
 
 clean: 
-	rm -f $(outFile) stage1.bin stage2.bin stage3.bin $(cobjs) $(asmobjs) *.bin *.o $(buildDir)/disassmbly.asm
+	rm -f $(outFile) stage1.bin stage2.bin stage3.bin $(cobjs) $(asmobjs) *.bin *.o $(buildDir)/disassmbly.asm rm disk_fmt.fmt
 
 # For debugging
 disassmbly: 
