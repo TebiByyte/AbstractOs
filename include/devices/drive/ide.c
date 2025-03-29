@@ -133,9 +133,12 @@ bool ide_read_sectors(uint16 base_addr, uint8 drive, uint16 sector_num, uint64 l
     for (int sec = 0; sec < sector_num; sec++){
         for (int j = 0; j < 256; j++){
             ((uint16*)buffer)[j] = p_read16(base_addr + IDE_DATA);
-        }   
+        }  
 
-        wait_for_data_ready(base_addr);
+        // If we're not at the end 
+        if (sec != sector_num - 1){
+            wait_for_data_ready(base_addr);
+        }
 
         if ((p_read8(base_addr + IDE_STATUS) & 0x1) != 0){
             return false;

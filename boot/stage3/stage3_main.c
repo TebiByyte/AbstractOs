@@ -9,10 +9,14 @@
 #include <devices/pci/pci.h>
 #include <acpi/acpi.h>
 #include <mem_mgt.h>
+#include <disk/part.h>
+#include <disk/fs/ext.h>
 
 extern uint32 endkernel;
 
 void printMemoryMapOutput(int count, smap_entry_t* smap_entries);
+void print_gpt_info(part_tbl_head *header);
+void print_gpt_entry_info(part_tbl_entry *entry);
 
 __attribute((interrupt))
 void page_exception_handler(int_frame* int_frame, uint64 error_code){
@@ -76,16 +80,7 @@ void chainloader_entry(){
     uint32* ide_controller_count = ide_find_controllers(device_list, *pci_count);
     ide_controller *controller_array = (ide_controller *)((void*)ide_controller_count + sizeof(uint32));
 
-    ide_controller first = controller_array[0];
-    pci_header_reg_1 reg = {.reg_value = read_pci_register(first.pci_device_controller->address, 0x1)};
-
-    reg.command = 0;
-
-    write_pci_register(first.pci_device_controller->address, 0x1, 0);
-
-    screen_printf("h\n", read_pci_register(first.pci_device_controller->address, 0x1));
-
-    uint16 id_buff[256];
+    uint16 *id_buff = (uint16*)mem_alloc(512);
 
     enum ide_id_dev_result drv_id_err = identify_drive(IDE_PRIMARY, 0, (void*)id_buff);
 
@@ -99,10 +94,27 @@ void chainloader_entry(){
     
     uint8 buffer[512];
 
-    bool read_success = ide_read_sectors(IDE_PRIMARY, 0, 1, 0, (void*)(&buffer));
+    bool read_success = ide_read_sectors(IDE_PRIMARY, 0, 1, 1, (void*)(&buffer));
 
+    //TODO include memory comparison functions
     if (read_success){
-        screen_printf("h\n", buffer[511]);
+        part_tbl_head *header = (part_tbl_head*)(&buffer);
+
+        print_gpt_info(header);
+
+        part_tbl_entry entry = get_entry(1, header);
+
+        print_gpt_entry_info(&entry);
+
+        ext2_superblock super_block = get_super_block(entry.start_lba);
+
+        if (super_block.magic_sig == EXT2_SIGNATURE){
+            screen_print_str("hello?\n");
+            //TODO: Investigate mysterious crash
+        } else {
+            screen_printf("sh\n", "Invalid superblock signature: ", super_block.magic_sig);
+        }
+
     } else {
         screen_print_str("There was an error\n");
         screen_print_int(p_read8(IDE_PRIMARY + IDE_ERROR), 2);
@@ -117,6 +129,31 @@ void chainloader_entry(){
 
     while(1){}
     return;
+}
+
+void print_gpt_info(part_tbl_head *header){
+    screen_print_str("gpt sig: ");
+    for (int i = 0; i < 9; i++){
+        screen_print_char(header->sig[i]);
+    }
+    screen_print_char('\n');
+
+    screen_printf("sh\n", "gpt revision: ", header->gpt_rev);
+    screen_printf("sh\n", "header size: ", header->header_size);
+    screen_printf("sh\n", "check sum: ", header->ck_sum);
+    screen_printf("sh\n", "header lba: ", header->header_lba);
+    screen_printf("sh\n", "alt header lba: ", header->alt_header_lba);
+    screen_printf("sh\n", "first usable block: ", header->first_gpt_lba);
+    screen_printf("sh\n", "last useable block: ", header->last_gpt_lba);
+    screen_printf("sh\n", "gpt start lba: ", header->part_tbl_start);
+    screen_printf("sh\n", "number of entries: ", header->num_entries);
+    screen_printf("sh\n", "entry size: ", header->part_entry_size);
+
+}
+
+void print_gpt_entry_info(part_tbl_entry *entry){
+    screen_printf("sh\n", "Start lba: ", entry->start_lba);
+    screen_printf("sh\n", "End lba: ", entry->end_lba);
 }
 
 void printMemoryMapOutput(int count, smap_entry_t* smap_entries){
