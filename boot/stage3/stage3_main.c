@@ -109,7 +109,7 @@ void chainloader_entry(){
         ext2_superblock super_block = get_super_block(entry.start_lba);
 
         if (super_block.magic_sig == EXT2_SIGNATURE){
-            screen_print_str("hello?\n");
+            screen_print_str("EXT2 file system verified\n");
             //TODO: Investigate mysterious crash
         } else {
             screen_printf("sh\n", "Invalid superblock signature: ", super_block.magic_sig);

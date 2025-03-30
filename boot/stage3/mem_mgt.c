@@ -26,6 +26,6 @@ void mem_set(void* mem_location, uint8 value, uint32 range){
 
 void mem_cpy(void* copy_from, void* copy_to, uint32 range){
     for (uint32 offset = 0; offset < range; offset++){
-        *(uint64*)(copy_to + offset) = *(uint64*)(copy_from + offset);
+        *(uint8*)(copy_to + offset) = *(uint8*)(copy_from + offset);
     }
 }
